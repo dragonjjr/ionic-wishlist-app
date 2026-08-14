@@ -1,0 +1,35 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>My Wishlist</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-list>
+    @for (item of wishlist(); track item.id) {
+
+    <ion-item>
+      <div class="item-icon">{{ item.icon }}</div>
+
+      <ion-label>
+        <h2>{{ item.name }}</h2>
+
+        <p>{{ item.category }}</p>
+
+        <p>${{ item.price }}</p>
+      </ion-label>
+
+      @if (item.isPurchased) {
+
+      <ion-button fill="clear" color="success"> Purchased </ion-button>
+
+      } @else {
+
+      <ion-button fill="clear"> Buy </ion-button>
+
+      }
+    </ion-item>
+
+    }
+  </ion-list>
+</ion-content>

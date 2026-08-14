@@ -1,0 +1,62 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Team Wishlist</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <h1>Hello, Admin 👋</h1>
+
+  <p class="subtitle">Here is your wishlist summary</p>
+
+  <!-- Statistics -->
+  <ion-grid>
+    <ion-row>
+      <ion-col size="6">
+        <ion-card>
+          <ion-card-content class="stat-card">
+            <h2>{{ totalItems() }}</h2>
+
+            <p>Items</p>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+
+      <ion-col size="6">
+        <ion-card>
+          <ion-card-content class="stat-card">
+            <h2>{{ purchasedItems() }}</h2>
+
+            <p>Purchased</p>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+  <!-- Wishlist -->
+  <h2>My Wishlist</h2>
+  <ion-list>
+    @for (item of wishlist(); track item.id) {
+
+    <ion-item>
+      <div class="item-icon">{{ item.icon }}</div>
+
+      <ion-label>
+        <h3>{{ item.name }}</h3>
+
+        <p>{{ item.category }}</p>
+      </ion-label>
+
+      <strong> ${{ item.price }} </strong>
+    </ion-item>
+
+    }
+  </ion-list>
+
+  <ion-button expand="block" (click)="openWishlist()"> My Wishlist </ion-button>
+  <!-- Logout -->
+  <ion-button expand="block" fill="outline" (click)="logout()">
+    Logout
+  </ion-button>
+</ion-content>

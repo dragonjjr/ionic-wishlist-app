@@ -1,0 +1,42 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Login</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <div class="login-container">
+
+    <h1>Team Wishlist</h1>
+
+    <p>Please login to continue</p>
+
+    <ion-item>
+      <ion-input
+        label="Email"
+        labelPlacement="stacked"
+        type="email"
+        placeholder="Enter your email"
+        [(ngModel)]="email">
+      </ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-input
+        label="Password"
+        labelPlacement="stacked"
+        type="password"
+        placeholder="Enter your password"
+        [(ngModel)]="password">
+      </ion-input>
+    </ion-item>
+
+    <!-- Add a login button full width -->
+    <ion-button expand="block" (click)="login()">
+      Login
+    </ion-button>
+
+  </div>
+
+</ion-content>
