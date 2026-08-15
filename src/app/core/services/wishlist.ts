@@ -36,4 +36,25 @@ export class WishlistService {
   getWishlist() {
     return this.wishlist;
   }
+
+  addItem(
+    item: Omit<WishlistItem, 'id'>
+  ): void {
+
+    this.wishlist.update(items => {
+
+      const newId =
+        items.length > 0
+          ? Math.max(...items.map(item => item.id)) + 1
+          : 1;
+
+      return [
+        ...items,
+        {
+          id: newId,
+          ...item
+        }
+      ];
+    });
+  }
 }
