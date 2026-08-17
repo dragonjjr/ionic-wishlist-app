@@ -1,141 +1,47 @@
 import { Injectable, signal } from '@angular/core';
 import { WishlistItem } from '../../models/wishlist-item';
+import { Observable } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class WishlistService {
+  private readonly apiUrl = 'http://localhost:3000/wishlist';
 
-  private readonly storageKey = 'wishlist';
+  constructor(private http: HttpClient) {}
 
-  private wishlist = signal<WishlistItem[]>(
-    this.loadWishlist()
-  );
-
-  private loadWishlist(): WishlistItem[] {
-
-    const stored = localStorage.getItem(this.storageKey);
-
-    if (!stored) {
-      return [
-        {
-          id: 1,
-          name: 'AirPods Pro',
-          category: 'Electronics',
-          price: 249,
-          icon: '🎧',
-          isPurchased: false
-        },
-        {
-          id: 2,
-          name: 'Keychron K2',
-          category: 'Electronics',
-          price: 120,
-          icon: '⌨️',
-          isPurchased: true
-        },
-        {
-          id: 3,
-          name: 'Clean Code',
-          category: 'Books',
-          price: 35,
-          icon: '📚',
-          isPurchased: false
-        }
-      ];
-    }
-
-    return JSON.parse(stored);
+  getWishlist(): Observable<WishlistItem[]> {
+    return this.http.get<WishlistItem[]>(this.apiUrl);
   }
 
-  getWishlist() {
-    return this.wishlist;
-  }
-
-  addItem(
-    item: Omit<WishlistItem, 'id'>
-  ): void {
-
-    this.wishlist.update(items => {
-
-      const newId =
-        items.length > 0
-          ? Math.max(...items.map(item => item.id)) + 1
-          : 1;
-
-      const updatedItems = [
-        ...items,
-        {
-          id: newId,
-          ...item
-        }
-      ];
-
-      this.saveWishlist(updatedItems);
-
-      return updatedItems;
-    });
+  addItem(item: Omit<WishlistItem, 'id'>): Observable<WishlistItem> {
+    return this.http.post<WishlistItem>(this.apiUrl, item);
   }
 
   updateItem(
     id: number,
-    updatedItem: Omit<WishlistItem, 'id'>
-  ): void {
-
-    this.wishlist.update(items => {
-
-      const updatedItems = items.map(item =>
-        item.id === id
-          ? {
-            id,
-            ...updatedItem
-          }
-          : item
-      );
-
-      this.saveWishlist(updatedItems);
-
-      return updatedItems;
-    });
+    item: Omit<WishlistItem, 'id'>,
+  ): Observable<WishlistItem> {
+    return this.http.put<WishlistItem>(`${this.apiUrl}/${id}`, item);
   }
 
-  deleteItem(id: number): void {
-
-    this.wishlist.update(items => {
-
-      const updatedItems =
-        items.filter(item => item.id !== id);
-
-      this.saveWishlist(updatedItems);
-
-      return updatedItems;
-    });
+  deleteItem(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 
-  togglePurchased(id: number): void {
+  togglePurchased(item: WishlistItem): Observable<WishlistItem> {
+    const updatedItem = {
+      name: item.name,
+      category: item.category,
+      price: item.price,
+      icon: item.icon,
+      isPurchased: !item.isPurchased,
+    };
 
-    this.wishlist.update(items => {
-
-      const updatedItems = items.map(item =>
-        item.id === id
-          ? {
-            ...item,
-            isPurchased: !item.isPurchased
-          }
-          : item
-      );
-
-      this.saveWishlist(updatedItems);
-
-      return updatedItems;
-    });
-  }
-
-  private saveWishlist(items: WishlistItem[]): void {
-
-    localStorage.setItem(
-      this.storageKey,
-      JSON.stringify(items)
+    return this.http.put<WishlistItem>(
+      `${this.apiUrl}/${item.id}`,
+      updatedItem,
     );
   }
 }

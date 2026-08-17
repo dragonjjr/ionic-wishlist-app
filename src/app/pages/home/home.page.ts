@@ -1,6 +1,7 @@
 import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { toSignal } from '@angular/core/rxjs-interop';
 import {
   IonContent,
   IonHeader,
@@ -20,7 +21,8 @@ import { Router } from '@angular/router';
 import { Auth } from '../../core/services/auth';
 
 import { WishlistService } from '../../core/services/wishlist';
-
+import { WishlistItem } from '../../models/wishlist-item';
+import { ViewWillEnter } from '@ionic/angular';
 @Component({
   selector: 'app-home',
   templateUrl: './home.page.html',
@@ -44,8 +46,8 @@ import { WishlistService } from '../../core/services/wishlist';
     IonLabel,
   ],
 })
-export class HomePage implements OnInit {
-    constructor(
+export class HomePage implements OnInit, ViewWillEnter {
+  constructor(
     private router: Router,
     private authService: Auth,
     private wishlistService: WishlistService,
@@ -53,14 +55,23 @@ export class HomePage implements OnInit {
 
   ngOnInit() {}
 
-  wishlist = this.wishlistService.getWishlist();
-  
-  // If the wishlist changes, the totalItems and purchasedItems will automatically update
+  wishlist = signal<WishlistItem[]>([]);
+
   totalItems = computed(() => this.wishlist().length);
 
-  purchasedItems = computed(
+  totalPurchased = computed(
     () => this.wishlist().filter((item) => item.isPurchased).length,
   );
+
+  ionViewWillEnter(): void {
+    this.loadWishlist();
+  }
+
+  loadWishlist(): void {
+    this.wishlistService.getWishlist().subscribe((items) => {
+      this.wishlist.set(items);
+    });
+  }
 
   logout(): void {
     this.authService.logout();

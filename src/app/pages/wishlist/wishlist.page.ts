@@ -1,10 +1,6 @@
 import { Component, computed, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import {
-  FormBuilder,
-  ReactiveFormsModule,
-  Validators
-} from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import {
   IonHeader,
@@ -27,6 +23,8 @@ import {
   IonAlert,
   AlertController,
 } from '@ionic/angular/standalone';
+
+import { ViewWillEnter } from '@ionic/angular';
 
 import { WishlistService } from '../../core/services/wishlist';
 import { WishlistItem } from '../../models/wishlist-item';
@@ -51,24 +49,21 @@ import { WishlistItem } from '../../models/wishlist-item';
     IonFabButton,
     FormsModule,
     ReactiveFormsModule,
-    IonIcon,
     IonModal,
     IonInput,
     IonCheckbox,
-    IonAlert,
   ],
 })
-export class WishlistPage implements OnInit {
-
+export class WishlistPage implements OnInit, ViewWillEnter {
   constructor(
     private wishlistService: WishlistService,
     private formBuilder: FormBuilder,
-    private alertController: AlertController
-  ) { }
+    private alertController: AlertController,
+  ) {}
 
-  ngOnInit() { }
+  ngOnInit() {}
 
-  wishlist = this.wishlistService.getWishlist();
+  wishlist = signal<WishlistItem[]>([]);
 
   searchText = '';
 
@@ -79,17 +74,12 @@ export class WishlistPage implements OnInit {
   editingItemId: number | null = null;
 
   filteredWishlist(): WishlistItem[] {
-
     const items = this.wishlist();
 
-    const search = this.searchText
-      .trim()
-      .toLowerCase();
+    const search = this.searchText.trim().toLowerCase();
 
-    return items.filter(item => {
-
-      const matchesSearch =
-        item.name.toLowerCase().includes(search);
+    return items.filter((item) => {
+      const matchesSearch = item.name.toLowerCase().includes(search);
 
       const matchesFilter =
         this.listFilter === 'all' ||
@@ -109,18 +99,16 @@ export class WishlistPage implements OnInit {
   }
 
   addItem(): void {
-
     this.editingItemId = null;
 
     this.addItemForm.reset({
       name: '',
       category: '',
       price: null,
-      icon: '🎁'
+      icon: '🎁',
     });
 
     this.isAddModalOpen = true;
-
   }
 
   cancelAdd(): void {
@@ -128,7 +116,6 @@ export class WishlistPage implements OnInit {
   }
 
   saveItem(): void {
-
     if (this.addItemForm.invalid) {
       this.addItemForm.markAllAsTouched();
       return;
@@ -141,25 +128,20 @@ export class WishlistPage implements OnInit {
       category: formValue.category!,
       price: formValue.price!,
       icon: formValue.icon!,
-      isPurchased: false
+      isPurchased: false,
     };
 
     if (this.editingItemId === null) {
-
       this.wishlistService.addItem(itemData);
-
     } else {
-
-      const existingItem = this.wishlist()
-        .find(item => item.id === this.editingItemId);
-
-      this.wishlistService.updateItem(
-        this.editingItemId,
-        {
-          ...itemData,
-          isPurchased: existingItem?.isPurchased ?? false
-        }
+      const existingItem = this.wishlist().find(
+        (item) => item.id === this.editingItemId,
       );
+
+      this.wishlistService.updateItem(this.editingItemId, {
+        ...itemData,
+        isPurchased: existingItem?.isPurchased ?? false,
+      });
     }
 
     this.isAddModalOpen = false;
@@ -170,31 +152,30 @@ export class WishlistPage implements OnInit {
     name: ['', Validators.required],
     category: ['', Validators.required],
     price: [0, [Validators.required, Validators.min(0)]],
-    icon: ['🎁', Validators.required]
+    icon: ['🎁', Validators.required],
   });
 
-  togglePurchased(id: number): void {
-    this.wishlistService.togglePurchased(id);
+  togglePurchased(item: WishlistItem): void {
+    this.wishlistService.togglePurchased(item).subscribe(() => {
+      this.loadWishlist();
+    });
   }
 
   editItem(item: WishlistItem): void {
-
     this.editingItemId = item.id;
 
     this.addItemForm.patchValue({
       name: item.name,
       category: item.category,
       price: item.price,
-      icon: item.icon
+      icon: item.icon,
     });
 
     this.isAddModalOpen = true;
   }
 
   async deleteItem(id: number): Promise<void> {
-
-    const item = this.wishlist()
-      .find(item => item.id === id);
+    const item = this.wishlist().find((item) => item.id === id);
 
     if (!item) {
       return;
@@ -206,18 +187,28 @@ export class WishlistPage implements OnInit {
       buttons: [
         {
           text: 'Cancel',
-          role: 'cancel'
+          role: 'cancel',
         },
         {
           text: 'Delete',
           role: 'destructive',
           handler: () => {
             this.wishlistService.deleteItem(id);
-          }
-        }
-      ]
+          },
+        },
+      ],
     });
 
     await alert.present();
+  }
+
+  ionViewWillEnter(): void {
+    this.loadWishlist();
+  }
+
+  loadWishlist(): void {
+    this.wishlistService.getWishlist().subscribe((items) => {
+      this.wishlist.set(items);
+    });
   }
 }

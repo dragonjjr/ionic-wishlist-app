@@ -55,7 +55,7 @@
     @for (item of filteredWishlist(); track item.id) {
 
     <ion-item>
-      <ion-checkbox slot="start" [checked]="item.isPurchased" (ionChange)="togglePurchased(item.id)">
+      <ion-checkbox slot="start" [checked]="item.isPurchased" (ionChange)="togglePurchased(item)">
       </ion-checkbox>
       <div class="item-icon">
         {{ item.icon }}
